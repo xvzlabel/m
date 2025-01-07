@@ -1,111 +1,89 @@
+const timeElement = document.getElementById('time');
+const params = new URLSearchParams(window.location.search);
+const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
 
-
-var time = document.getElementById("time");
-var params = new URLSearchParams(window.location.search);
-
-var options = { year: 'numeric', month: 'numeric', day: 'numeric' };
-
-function delay(time) {
-    return new Promise(resolve => setTimeout(resolve, time));
+function setClock() {
+  const date = new Date();
+  timeElement.innerHTML = `Czas: ${
+    date.toTimeString().split(' ')[0]
+  } ${date.toLocaleDateString('pl-PL', options)}`;
 }
 
-var date = new Date();
 setClock();
-function setClock(){
-    date = new Date()
-    time.innerHTML = "Czas: " + date.toTimeString().split(" ")[0] + " " + date.toLocaleDateString("pl-PL", options);    
-    delay(1000).then(() => {
-        setClock();
-    })
-}
+setInterval(setClock, 1000);
 
 let webManifest = {
-  "name": "",
-  "short_name": "",
-  "theme_color": "#f5f6fb",
-  "background_color": "#f5f6fb",
-  "display": "standalone"
+  name: '',
+  short_name: '',
+  theme_color: '#f5f6fb',
+  background_color: '#f5f6fb',
+  display: 'standalone',
 };
 
 function getMobileOperatingSystem() {
-  var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  var userAgent = navigator.userAgent || window.opera;
 
-  if (/windows phone/i.test(userAgent)) {
-      return 1;
-  }
-
-  if (/android/i.test(userAgent)) {
-      return 2;
-  }
-
-  if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-      return 3;
-  }
-
+  if (/windows phone/i.test(userAgent)) return 1;
+  if (/android/i.test(userAgent)) return 2;
+  if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) return 3;
   return 4;
 }
 
-if (getMobileOperatingSystem() == 2){
-    document.querySelector(".bottom_bar").style.height = "70px"
+if (getMobileOperatingSystem() == 2) {
+  document.querySelector('.bottom_bar').style.height = '70px';
 }
 
-let manifestElem = document.createElement('link');
-manifestElem.setAttribute('rel', 'manifest');
-manifestElem.setAttribute('href', 'data:application/manifest+json;base64,' + btoa(JSON.stringify(webManifest)));
-document.head.prepend(manifestElem);
+const manifestLink = document.createElement('link');
+manifestLink.rel = 'manifest';
+manifestLink.href = `data:application/manifest+json;base64,${btoa(
+  JSON.stringify(webManifest)
+)}`;
+document.head.prepend(manifestLink);
 
-var unfold = document.querySelector(".info_holder");
-unfold.addEventListener('click', () => {
+const unfoldElement = document.querySelector('.info_holder');
+unfoldElement.addEventListener('click', () => {
+  unfoldElement.classList.toggle('unfolded');
+});
 
-  if (unfold.classList.contains("unfolded")){
-    unfold.classList.remove("unfolded");
-  }else{
-    unfold.classList.add("unfolded");
-  }
-
-})
-
-document.querySelector(".id_own_image").style.backgroundImage = `url(${params.get("image")})`;
-
-var birthday = params.get("birthday");
-var sex = params.get("sex");
-
-setData("name", params.get("name").toUpperCase());
-setData("surname", params.get("surname").toUpperCase());
-setData("nationality", params.get("nationality").toUpperCase());
-setData("birthday", birthday);
-setData("familyName", params.get("familyName"));
-setData("sex", sex);
-setData("fathersFamilyName", params.get("fathersFamilyName"));
-setData("mothersFamilyName", params.get("mothersFamilyName"));
-setData("birthPlace", params.get("birthPlace"));
-setData("countryOfBirth", params.get("countryOfBirth"));
-setData("adress", "ul. " + params.get("adress1") + "<br>" + params.get("adress2") + " " + params.get("city"));
-setData("checkInDate", params.get("checkInDate"));
-
-var birthdaySplit = birthday.split(".");
-var day = birthdaySplit[0];
-var month = birthdaySplit[1];
-var year = birthdaySplit[2];
-
-if (parseInt(year) >= 2000){
-  month = 20 + parseInt(month);
+const imageParam = params.get('image');
+if (imageParam) {
+  document.querySelector(
+    '.id_own_image'
+  ).style.backgroundImage = `url(${imageParam})`;
 }
 
-var later;
+const birthday = params.get('birthday');
+const sex = params.get('sex');
+const setData = (id, value) => {
+  const element = document.getElementById(id);
+  if (element) element.innerHTML = value || '';
+};
 
-if (sex.toLowerCase() === "mężczyzna"){
-  later = "0295"
-}else{
-  later = "0382"
+setData('name', params.get('name').toUpperCase());
+setData('surname', params.get('surname').toUpperCase());
+setData('nationality', params.get('nationality').toUpperCase());
+setData('birthday', birthday);
+setData('familyName', params.get('familyName'));
+setData('sex', sex);
+setData('fathersFamilyName', params.get('fathersFamilyName'));
+setData('mothersFamilyName', params.get('mothersFamilyName'));
+setData('birthPlace', params.get('birthPlace'));
+setData('countryOfBirth', params.get('countryOfBirth'));
+setData(
+  'adress',
+  `ul. ${params.get('adress1') || ''}<br>${params.get('adress2') || ''} ${
+    params.get('city') || ''
+  }`
+);
+setData('checkInDate', params.get('checkInDate'));
+
+if (birthday) {
+  const [day, month, year] = birthday.split('.').map((v) => parseInt(v, 10));
+  const adjustedMonth = year >= 2000 ? 20 + month : month;
+
+  const peselSuffix = sex?.toLowerCase() === 'mężczyzna' ? '0295' : '0382';
+  const pesel = `${year % 100}${adjustedMonth.toString().padStart(2, '0')}${day
+    .toString()
+    .padStart(2, '0')}${peselSuffix}7`;
+  setData('pesel', pesel);
 }
-
-var pesel = year.substring(2) + month + day + later + "7";
-setData("pesel", pesel)
-
-function setData(id, value){
-
-  document.getElementById(id).innerHTML = value;
-
-}
-
