@@ -2,7 +2,7 @@
 
 Uwaga! Ten projekt służy jedynie jako pamiątka kolekcjonerska.
 
-https://morleee.github.io/yObywatel
+https://xvzlabel.github.io/m
 
 ### Instrukcja zainstalowania:
 #### Dla systemu IOS:
